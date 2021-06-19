@@ -5,9 +5,12 @@
 package it.polito.tdp.PremierLeague;
 
 import java.net.URL;
+import java.util.List;
 import java.util.ResourceBundle;
 
 import it.polito.tdp.PremierLeague.model.Model;
+import it.polito.tdp.PremierLeague.model.Team;
+import it.polito.tdp.PremierLeague.model.TeamPesato;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -35,7 +38,7 @@ public class FXMLController {
     private Button btnSimula; // Value injected by FXMLLoader
 
     @FXML // fx:id="cmbSquadra"
-    private ComboBox<?> cmbSquadra; // Value injected by FXMLLoader
+    private ComboBox<Team> cmbSquadra; // Value injected by FXMLLoader
 
     @FXML // fx:id="txtN"
     private TextField txtN; // Value injected by FXMLLoader
@@ -48,12 +51,42 @@ public class FXMLController {
 
     @FXML
     void doClassifica(ActionEvent event) {
-
+    	this.txtResult.clear();
+    	Team t=this.cmbSquadra.getValue();
+    	if(t==null) {
+    		this.txtResult.appendText("Inserire un team!");
+    		return;
+    	}
+    	List<TeamPesato> migliori=this.model.getMigliori(t);
+    	List<TeamPesato> peggiori=this.model.getPeggiori(t);
+    	this.txtResult.appendText("Squadre migliori "+"\n");
+    	if(migliori==null) {
+    		this.txtResult.appendText("nessuna"+"\n");
+    	}
+    	else {
+    		for(TeamPesato s: migliori) {
+    			this.txtResult.appendText(s.toString()+"\n");
+    		}
+    	}
+    	
+    	this.txtResult.appendText("SquadrePeggiori "+"\n");
+    	if(peggiori==null) {
+    		this.txtResult.appendText("nessuna "+"\n");
+    	}
+    	else {
+    		for(TeamPesato s: peggiori) {
+    			this.txtResult.appendText(s.toString()+"\n");
+    		}
+    	}
     }
 
     @FXML
     void doCreaGrafo(ActionEvent event) {
-
+    	this.txtResult.clear();
+    	String result=this.model.creaGrafo();
+    	this.txtResult.setText(result);
+    	this.cmbSquadra.getItems().addAll(this.model.getVertici());
+    	this.btnClassifica.setDisable(false);
     }
 
     @FXML
@@ -74,5 +107,6 @@ public class FXMLController {
     
     public void setModel(Model model) {
     	this.model = model;
+    	this.btnClassifica.setDisable(true);
     }
 }

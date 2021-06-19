@@ -6,6 +6,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+
 import it.polito.tdp.PremierLeague.model.Action;
 import it.polito.tdp.PremierLeague.model.Match;
 import it.polito.tdp.PremierLeague.model.Player;
@@ -36,9 +38,9 @@ public class PremierLeagueDAO {
 		}
 	}
 	
-	public List<Team> listAllTeams(){
+	public void listAllTeams(Map<Integer, Team> idMap){
 		String sql = "SELECT * FROM Teams";
-		List<Team> result = new ArrayList<Team>();
+//		List<Team> result = new ArrayList<Team>();
 		Connection conn = DBConnect.getConnection();
 
 		try {
@@ -47,14 +49,14 @@ public class PremierLeagueDAO {
 			while (res.next()) {
 
 				Team team = new Team(res.getInt("TeamID"), res.getString("Name"));
-				result.add(team);
+				if(!idMap.containsKey(team.getTeamID())) {
+					idMap.put(team.getTeamID(), team);
+				}
 			}
 			conn.close();
-			return result;
 			
 		} catch (SQLException e) {
-			e.printStackTrace();
-			return null;
+			throw new RuntimeException(e);
 		}
 	}
 	
@@ -110,6 +112,112 @@ public class PremierLeagueDAO {
 			e.printStackTrace();
 			return null;
 		}
+	}
+	
+	public Integer getPuntiCasa(Team t) {
+		/*String sql="SELECT t1.cod, t1.risTrasf, t2.risCasa "
+				+ "FROM ( "
+				+ "SELECT m.ResultOfTeamHome AS cod, COUNT(*) risTrasf "
+				+ "FROM matches m "
+				+ "WHERE m.TeamAwayID=? "
+				+ "GROUP BY m.ResultOfTeamHome) AS t1, "
+				+ "( "
+				+ "SELECT m1.ResultOfTeamHome AS cod, COUNT(*) AS risCasa "
+				+ "FROM matches m1 "
+				+ "WHERE m1.TeamHomeID=? "
+				+ "GROUP BY m1.ResultOfTeamHome ) AS t2 "
+				+ "WHERE t1.cod=t2.cod ";*/
+		
+		String sql="SELECT m.ResultOfTeamHome AS cod, COUNT(*) AS risCasa "
+				+ "FROM matches m "
+				+ "WHERE m.TeamHomeID=? AND m.ResultOfTeamHome<>-1 "
+				+ "GROUP BY m.ResultOfTeamHome ";
+		
+		/*String sql2= "SELECT m.ResultOfTeamHome AS cod, COUNT(*) risTrasf "
+				+ "FROM matches m "
+				+ "WHERE m.TeamAwayID=?  "
+				+ "GROUP BY m.ResultOfTeamHome ";*/
+				
+		
+		Connection conn = DBConnect.getConnection();
+
+		try {
+			PreparedStatement st = conn.prepareStatement(sql);
+			st.setInt(1, t.getTeamID());
+			ResultSet res = st.executeQuery();
+			Integer puntiCasa=0;
+			while (res.next()) {
+				
+			Integer codice=	res.getInt("cod");
+			
+			if(codice==0) {
+				puntiCasa+=res.getInt("risCasa");
+			}
+			else {
+				puntiCasa+=res.getInt("risCasa")*3;
+			}
+				
+			}
+			conn.close();
+			return puntiCasa;
+			
+		} catch (SQLException e) {
+			throw new RuntimeException(e);
+		}
+				
+	}
+	
+	public Integer getPuntiTrasf(Team t) {
+		/*String sql="SELECT t1.cod, t1.risTrasf, t2.risCasa "
+				+ "FROM ( "
+				+ "SELECT m.ResultOfTeamHome AS cod, COUNT(*) risTrasf "
+				+ "FROM matches m "
+				+ "WHERE m.TeamAwayID=? "
+				+ "GROUP BY m.ResultOfTeamHome) AS t1, "
+				+ "( "
+				+ "SELECT m1.ResultOfTeamHome AS cod, COUNT(*) AS risCasa "
+				+ "FROM matches m1 "
+				+ "WHERE m1.TeamHomeID=? "
+				+ "GROUP BY m1.ResultOfTeamHome ) AS t2 "
+				+ "WHERE t1.cod=t2.cod ";*/
+		
+		/*String sql1="SELECT m.ResultOfTeamHome, COUNT(*) AS risCasa "
+				+ "FROM matches m "
+				+ "WHERE m.TeamHomeID=? AND m.ResultOfTeamHome<>-1 "
+				+ "GROUP BY m.ResultOfTeamHome ";*/
+		
+		String sql= "SELECT m.ResultOfTeamHome AS cod, COUNT(*) risTrasf "
+				+ "FROM matches m "
+				+ "WHERE m.TeamAwayID=?  AND m.ResultOfTeamHome<>1 "
+				+ "GROUP BY m.ResultOfTeamHome ";
+				
+		
+		Connection conn = DBConnect.getConnection();
+
+		try {
+			PreparedStatement st = conn.prepareStatement(sql);
+			st.setInt(1, t.getTeamID());
+			ResultSet res = st.executeQuery();
+			Integer puntiT=0;
+			while (res.next()) {
+				
+			Integer codice=	res.getInt("cod");
+			
+			if(codice==-1) {
+				puntiT+=res.getInt("risTrasf")*3;
+			}
+			else {
+				puntiT+=res.getInt("risTrasf");
+			}
+				
+			}
+			conn.close();
+			return puntiT;
+			
+		} catch (SQLException e) {
+			throw new RuntimeException(e);
+		}
+				
 	}
 	
 }
