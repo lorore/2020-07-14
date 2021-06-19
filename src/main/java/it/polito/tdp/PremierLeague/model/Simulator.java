@@ -14,9 +14,9 @@ public class Simulator {
 	Map<Team, Integer> reporters;
 	Map<Integer, Team> teams;
 	List<Match> matches;
-	Integer numRepTot=0;
-	Integer numMatches=0;
-	Integer numSottoSoglia=0;
+	Integer numRepTot;
+	Integer numMatches;
+	Integer numSottoSoglia;
 	
 	public void setParam(Model m, int N, int X) {
 		this.m=m;
@@ -32,6 +32,9 @@ public class Simulator {
 	}
 	teams=this.m.getIdMap();
 	this.matches=m.getMatches();
+	this.numRepTot=0;
+	this.numMatches=0;
+	this.numSottoSoglia=0;
 	
 	}
 	
@@ -50,64 +53,26 @@ public class Simulator {
 			Integer ris=m.getResultOfTeamHome();
 			if(ris==1) {
 				//ha vinto la squadra di casa
-				if(Math.random()*100<=50.0) {
-				if(reporters.get(casa)>0) {
-					List<TeamPesato> migliori=this.m.getMigliori(casa);
-					if(migliori!=null) {
-						//se c'è una squadra piu blasonata, cambia
-						Team casuale=this.getRandom(migliori);
-						reporters.put(casuale, reporters.get(casuale)+1);
-						
-						reporters.put(casa, reporters.get(casa)-1);
-					}
-				}
-				}
+			
+				this.gestisciVincente(casa);
+				
 				//la squadra ospite ha perso
-				if(Math.random()*100<=20.0) {
-					if(reporters.get(ospite)>0) {
-					int numRep=(int)Math.random()*reporters.get(ospite);
-					List<TeamPesato> peggiori=this.m.getPeggiori(ospite);
-					if(peggiori!=null) {
-						Team casuale=this.getRandom(peggiori);
-						reporters.put(casuale, reporters.get(casuale)+numRep);
-						
-						reporters.put(ospite, reporters.get(ospite)-numRep);
-					}
-					}
-				}
+			
+				this.gestisciPerdente(ospite);
 				
 			}else if(ris==-1) {
 				//ha vinto la squadra ospite
-				//la squadra di casa ha perso
-				if(Math.random()*100<=20.0) {
-					if(reporters.get(casa)>0) {
-					int numRep=(int)Math.random()*reporters.get(casa);
-					List<TeamPesato> peggiori=this.m.getPeggiori(casa);
-					if(peggiori!=null) {
-						Team casuale=this.getRandom(peggiori);
-						reporters.put(casuale, reporters.get(casuale)+numRep);
-						
-						reporters.put(casa, reporters.get(casa)-numRep);
-					}
-					}
-				}
 				
-				if(Math.random()*100<=50.0) {
-					if(reporters.get(ospite)>0) {
-						List<TeamPesato> migliori=this.m.getMigliori(ospite);
-						if(migliori!=null) {
-							//se c'è una squadra piu blasonata, cambia
-							Team casuale=this.getRandom(migliori);
-							reporters.put(casuale, reporters.get(casuale)+1);
-							
-							reporters.put(ospite, reporters.get(ospite)-1);
-						}
-					}
-					}
+			
+				this.gestisciVincente(ospite);
+				
+				//la squadra di casa ha perso
+			
+				this.gestisciPerdente(casa);
 				
 			}
 		}
-		double media=this.numRepTot/this.numMatches;
+		double media=(this.numRepTot*1.0)/this.numMatches;
 		System.out.println("Media: "+media+"\n");
 		System.out.println("Num partite sotto soglia: "+this.numSottoSoglia);
 	}
@@ -118,5 +83,35 @@ public class Simulator {
 		Random randomizer = new Random();
 		TeamPesato random = list.get(randomizer.nextInt(list.size()));
 		return random.getT();
+	}
+	
+	private void gestisciVincente(Team t) {
+		if(Math.random()*100<=50.0) {
+			if(reporters.get(t)>0) {
+				List<TeamPesato> migliori=this.m.getMigliori(t);
+				if(migliori!=null) {
+					//se c'è una squadra piu blasonata, cambia
+					Team casuale=this.getRandom(migliori);
+					reporters.put(casuale, reporters.get(casuale)+1);
+					
+					reporters.put(t, reporters.get(t)-1);
+				}
+			}
+			}
+	}
+	
+	private void gestisciPerdente(Team t) {
+		if(Math.random()*100<=20.0) {
+			if(reporters.get(t)>0) {
+			int numRep=(int)Math.random()*reporters.get(t);
+			List<TeamPesato> peggiori=this.m.getPeggiori(t);
+			if(peggiori!=null) {
+				Team casuale=this.getRandom(peggiori);
+				reporters.put(casuale, reporters.get(casuale)+numRep);
+				
+				reporters.put(t, reporters.get(t)-numRep);
+			}
+			}
+		}
 	}
 }
